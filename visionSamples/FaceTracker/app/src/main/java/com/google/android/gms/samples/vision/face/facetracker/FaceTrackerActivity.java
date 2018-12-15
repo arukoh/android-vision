@@ -31,6 +31,10 @@ import android.view.View;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import custom.core.Data;
+import custom.Detector;
+import custom.core.MeasureException;
+import custom.core.MeasureHolder;
 import com.google.android.gms.vision.CameraSource;
 import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.Tracker;
@@ -45,7 +49,7 @@ import java.io.IOException;
  * Activity for the face tracker app.  This app detects faces with the rear facing camera, and draws
  * overlay graphics to indicate the position, size, and ID of each face.
  */
-public final class FaceTrackerActivity extends AppCompatActivity {
+public final class FaceTrackerActivity extends AppCompatActivity implements MeasureHolder.Callback {
     private static final String TAG = "FaceTracker";
 
     private CameraSource mCameraSource = null;
@@ -122,9 +126,11 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private void createCameraSource() {
 
         Context context = getApplicationContext();
-        FaceDetector detector = new FaceDetector.Builder(context)
+        FaceDetector detectorOrg = new FaceDetector.Builder(context)
                 .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
                 .build();
+        int holdTimeSec = 3; // 90
+        Detector detector = new Detector(detectorOrg, holdTimeSec, this);
 
         detector.setProcessor(
                 new MultiProcessor.Builder<>(new GraphicFaceTrackerFactory())
@@ -147,6 +153,19 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 .setFacing(CameraSource.CAMERA_FACING_BACK)
                 .setRequestedFps(30.0f)
                 .build();
+    }
+
+    @Override
+    public void measureCompleted(Data data) {
+        Log.i(TAG, "measureCompleted: " + data.getValue1());
+        Log.i(TAG, String.valueOf(data));
+        mCameraSource.stop();
+    }
+
+    @Override
+    public void measureFailed(MeasureException e) {
+        Log.e(TAG, "measureFailed", e);
+        mCameraSource.stop();
     }
 
     /**
