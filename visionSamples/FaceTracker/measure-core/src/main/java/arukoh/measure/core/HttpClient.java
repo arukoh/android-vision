@@ -1,4 +1,4 @@
-package custom.core;
+package arukoh.measure.core;
 
 import org.json.JSONException;
 import org.json.JSONObject;

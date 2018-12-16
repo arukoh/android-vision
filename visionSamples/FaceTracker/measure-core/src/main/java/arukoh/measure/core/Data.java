@@ -1,4 +1,4 @@
-package custom.core;
+package arukoh.measure.core;
 
 import android.annotation.TargetApi;
 import android.graphics.Bitmap;
@@ -53,7 +53,7 @@ public class Data {
 
         public Generator(int holdTimeSec) {
             mHoldTimeSec = holdTimeSec;
-            mData = Collections.synchronizedList(new ArrayList<>());
+            mData = Collections.synchronizedList(new ArrayList<Float>());
 
             mCount = 0;
         }

@@ -6,9 +6,9 @@ import android.os.Build;
 import android.util.Log;
 import android.util.SparseArray;
 
-import custom.core.Data;
-import custom.core.MeasureException;
-import custom.core.MeasureHolder;
+import arukoh.measure.core.Data;
+import arukoh.measure.core.MeasureException;
+import arukoh.measure.core.MeasureHolder;
 import com.google.android.gms.vision.Frame;
 import com.google.android.gms.vision.face.Face;
 
@@ -53,7 +53,7 @@ public class Detector extends com.google.android.gms.vision.Detector<Face> {
         return mDelegate.setFocus(id);
     }
 
-    private custom.core.Face[] toFaces(SparseArray<Face> a) {
+    private arukoh.measure.core.Face[] toFaces(SparseArray<Face> a) {
         return null;
     }
 }

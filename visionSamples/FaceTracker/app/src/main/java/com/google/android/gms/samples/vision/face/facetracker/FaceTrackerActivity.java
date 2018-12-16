@@ -31,10 +31,10 @@ import android.view.View;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import custom.core.Data;
 import custom.Detector;
-import custom.core.MeasureException;
-import custom.core.MeasureHolder;
+import arukoh.measure.core.Data;
+import arukoh.measure.core.MeasureException;
+import arukoh.measure.core.MeasureHolder;
 import com.google.android.gms.vision.CameraSource;
 import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.Tracker;
@@ -129,7 +129,7 @@ public final class FaceTrackerActivity extends AppCompatActivity implements Meas
         FaceDetector detectorOrg = new FaceDetector.Builder(context)
                 .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
                 .build();
-        int holdTimeSec = 3; // 90
+        int holdTimeSec = 10; // 90
         Detector detector = new Detector(detectorOrg, holdTimeSec, this);
 
         detector.setProcessor(

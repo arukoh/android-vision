@@ -1,4 +1,4 @@
-package custom.core;
+package arukoh.measure.core;
 
 public class Face {
     private float x;
