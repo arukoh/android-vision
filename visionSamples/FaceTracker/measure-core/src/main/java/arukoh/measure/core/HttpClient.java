@@ -4,11 +4,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.List;
+import java.util.Random;
 
 class HttpClient {
+    private Random r;
 
     HttpClient() {
-
+        r = new Random();
     }
 
     JSONObject request(List<Float> data) throws JSONException {
@@ -23,6 +25,7 @@ class HttpClient {
         for (float v : data) {
             obj.put("KEY" + i++, (int) v);
         }
+        obj.put("SCORE", String.valueOf(r.nextInt(100) + 1));
         return obj.toString();
     }
 }

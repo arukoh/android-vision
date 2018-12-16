@@ -13,15 +13,15 @@ import java.util.Collections;
 import java.util.List;
 
 public class Data {
-    private static String KEY1 = "KEY1";
+    private static String KEY_SCORE = "SCORE";
     private JSONObject obj;
 
     Data(JSONObject obj) {
         this.obj = obj;
     }
 
-    public int getValue1() {
-        return getInt(KEY1);
+    public int getScore() {
+        return getInt(KEY_SCORE);
     }
 
     private int getInt(String key) {
@@ -58,7 +58,7 @@ public class Data {
             mCount = 0;
         }
 
-        public void add(Bitmap bitmap, Face[] faces) {
+        public void add(Bitmap bitmap, Face face) {
             float value = ++mCount;
 
             if (mData.size() == 0) {
@@ -71,7 +71,14 @@ public class Data {
 
         public boolean isCompleted() {
             long current = getCurrentEpochSecond();
-            return mStartTime + mHoldTimeSec < current;
+            return getFinishEpochSecond() < current;
+        }
+
+        public Progress getProgress() {
+            long current = getCurrentEpochSecond();
+            long remaining = getFinishEpochSecond() - current;
+            remaining = (remaining > 0) ? remaining : 0;
+            return new Progress(remaining);
         }
 
         public Data generate() throws MeasureException {
@@ -88,5 +95,7 @@ public class Data {
         private long getCurrentEpochSecond() {
             return Instant.now().getEpochSecond();
         }
+
+        private long getFinishEpochSecond() { return mStartTime + mHoldTimeSec; }
     }
 }
