@@ -21,6 +21,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
@@ -28,9 +29,17 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+
+import arukoh.measure.core.Progress;
+import custom.Detector;
+import arukoh.measure.core.Data;
+import arukoh.measure.core.MeasureException;
+import arukoh.measure.core.MeasureHolder;
 import com.google.android.gms.vision.CameraSource;
 import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.Tracker;
@@ -45,13 +54,15 @@ import java.io.IOException;
  * Activity for the face tracker app.  This app detects faces with the rear facing camera, and draws
  * overlay graphics to indicate the position, size, and ID of each face.
  */
-public final class FaceTrackerActivity extends AppCompatActivity {
+public final class FaceTrackerActivity extends AppCompatActivity implements MeasureHolder.Callback {
     private static final String TAG = "FaceTracker";
 
     private CameraSource mCameraSource = null;
 
     private CameraSourcePreview mPreview;
     private GraphicOverlay mGraphicOverlay;
+    private TextView mRemainingSecond;
+    private Detector mDetector;
 
     private static final int RC_HANDLE_GMS = 9001;
     // permission request codes need to be < 256
@@ -67,10 +78,11 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
-        setContentView(R.layout.main);
+        setContentView(R.layout.facetracker);
 
         mPreview = (CameraSourcePreview) findViewById(R.id.preview);
         mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
+        mRemainingSecond = (TextView) findViewById(R.id.textViewRemainingValue);
 
         // Check for the camera permission before accessing the camera.  If the
         // permission is not granted yet, request permission.
@@ -122,15 +134,17 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private void createCameraSource() {
 
         Context context = getApplicationContext();
-        FaceDetector detector = new FaceDetector.Builder(context)
+        FaceDetector detectorOrg = new FaceDetector.Builder(context)
                 .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
                 .build();
+        int holdTimeSec = 10; // 90
+        mDetector = new Detector(detectorOrg, holdTimeSec, this);
 
-        detector.setProcessor(
+        mDetector.setProcessor(
                 new MultiProcessor.Builder<>(new GraphicFaceTrackerFactory())
                         .build());
 
-        if (!detector.isOperational()) {
+        if (!mDetector.isOperational()) {
             // Note: The first time that an app using face API is installed on a device, GMS will
             // download a native library to the device in order to do detection.  Usually this
             // completes before the app is run for the first time.  But if that download has not yet
@@ -142,11 +156,44 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             Log.w(TAG, "Face detector dependencies are not yet available.");
         }
 
-        mCameraSource = new CameraSource.Builder(context, detector)
+        mCameraSource = new CameraSource.Builder(context, mDetector)
                 .setRequestedPreviewSize(640, 480)
-                .setFacing(CameraSource.CAMERA_FACING_BACK)
+                .setFacing(CameraSource.CAMERA_FACING_FRONT)
                 .setRequestedFps(30.0f)
                 .build();
+    }
+
+    @Override
+    public void measureCompleted(Data data) {
+        Intent intent = new Intent();
+        Bundle bundle = new Bundle();
+        bundle.putInt("SCORE", data.getScore());
+        intent.putExtras(bundle);
+
+        setResult(RESULT_OK, intent);
+        finish();
+    }
+
+    @Override
+    public void measureProgress(Progress progress) {
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                String remaining = String.valueOf(progress.getRemainingSecond());
+                mRemainingSecond.setText(remaining);
+            }
+        });
+    }
+
+    @Override
+    public void measureFailed(MeasureException e) {
+        Intent intent = new Intent();
+        Bundle bundle = new Bundle();
+        bundle.putString("TYPE", e.getClass().getName());
+        intent.putExtras(bundle);
+
+        setResult(RESULT_CANCELED, intent);
+        finish();
     }
 
     /**
